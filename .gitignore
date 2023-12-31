@@ -32,3 +32,5 @@
 *.app
 
 isolation_tester
+
+**/.idea
