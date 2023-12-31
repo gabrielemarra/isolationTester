@@ -12,21 +12,13 @@
 #include <iomanip> // for std::setw
 #include <fstream>
 #include <sstream>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <cstring>
 #include <iostream>
 #include <sstream>
-#include <sys/types.h>
-#include <sys/capability.h>
 
-#include <ifaddrs.h>
-#include <netdb.h>
-#include <unistd.h>
 #include <cstring>
 #include <iostream>
-#include <filesystem>
 #include <map>
 #include <iomanip>
 #include <set>
