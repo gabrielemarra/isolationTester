@@ -30,3 +30,5 @@
 *.exe
 *.out
 *.app
+
+isolation_tester
