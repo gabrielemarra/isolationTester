@@ -18,9 +18,27 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/capability.h>
+
+#include <ifaddrs.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <cstring>
+#include <iostream>
+#include <filesystem>
+#include <map>
+#include <iomanip>
+#include <set>
 
 
 namespace fs = std::filesystem;
+
+std::set<fs::path> excluded_directories = {
+    "/root", "/run", "/cdrom", "/lib32", "/mnt", "/sbin", "/lost+found", "/home", "/boot", "/sys", "/tmp", "/srv",
+    "/libx32", "/opt", "/bin", "/lib", "/dev", "/media", "/lib64", "/var", "/proc", "/snap", "/usr", "/etc"
+};
+
 
 namespace {
     void print_namespace_info(pid_t pid) {
@@ -78,6 +96,7 @@ namespace {
         std::cout << "pid: " << pid << std::endl;
     }
 
+
     bool can_access(const fs::path &path) {
         return fs::exists(path) && (fs::status(path).permissions() & fs::perms::owner_read) != fs::perms::none;
     }
@@ -85,6 +104,12 @@ namespace {
     void print_directory_tree(const fs::path &path, int level, int depth) {
         if (depth < 0 || !can_access(path)) {
             return; // depth limit reached or cannot access
+        }
+
+        // Check if the path is in the excluded directories
+        if (excluded_directories.find(path) != excluded_directories.end()) {
+            // std::cout << std::setw(level * 4) << "" << "[Excluded] " << path.filename() << std::endl;
+            return;
         }
 
         try {
@@ -109,6 +134,7 @@ namespace {
             std::cerr << "Error accessing " << path << ": " << e.what() << std::endl;
         }
     }
+
 
     void print_files_and_directories(fs::path path, int depth) {
         std::cout << "\n=== Files & Directories Tree ===" << std::endl;
@@ -200,7 +226,7 @@ int main(int argc, char **argv) {
     pid_t pid = getpid();
 
     print_pid_and_user();
-    print_files_and_directories("/", 0);
+    print_files_and_directories("/", 1);
     print_caps();
     print_network_interfaces();
     list_processes();
