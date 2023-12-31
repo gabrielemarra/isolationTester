@@ -12,11 +12,36 @@
 #include <iomanip> // for std::setw
 #include <fstream>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cstring>
+#include <iostream>
+#include <sstream>
 
 
 namespace fs = std::filesystem;
 
 namespace {
+    void print_namespace_info(pid_t pid) {
+        std::cout << "\n=== Namespace Information ===" << std::endl;
+        std::string ns_types[] = {"mnt", "pid", "net", "ipc", "uts", "user", "cgroup"};
+
+        for (const auto &type: ns_types) {
+            std::stringstream ss;
+            ss << "/proc/" << pid << "/ns/" << type;
+            std::string ns_path = ss.str();
+
+            struct stat ns_stat;
+            if (lstat(ns_path.c_str(), &ns_stat) != -1) {
+                std::cout << type << " namespace inode: " << ns_stat.st_ino << std::endl;
+            } else {
+                std::cerr << "Unable to access " << type << " namespace information for PID " << pid << ": " <<
+                        strerror(errno) << std::endl;
+            }
+        }
+    }
+
     void print_environment_variables() {
         std::cout << "\n=== Environment Variables ===" << std::endl;
         for (char **env = environ; *env != nullptr; env++) {
@@ -172,10 +197,13 @@ namespace {
 
 int main(int argc, char **argv) {
     std::cerr << "Running Isolation Tester" << std::endl;
+    pid_t pid = getpid();
+
     print_pid_and_user();
     print_files_and_directories("/", 0);
     print_caps();
     print_network_interfaces();
     list_processes();
     print_environment_variables();
+    print_namespace_info(pid); // Print namespace information
 }
